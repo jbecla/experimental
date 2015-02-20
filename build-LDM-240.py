@@ -30,7 +30,8 @@ wbsNmArr = (
     'Image Service'
 )
 
-fyArr = ('FY16', 'FY17', 'FY18', 'FY19', 'FY20')
+fyArr = ('FY15', 'FY16', 'FY17', 'FY18', 'FY19', 'FY20')
+clArr = ('S15','W15','S16','W16','S17','W17','S18','W18','S19','W19','S20','W20')
 
 cells = {}
 for w in wbsNoArr:
@@ -56,6 +57,10 @@ for issue in result['issues']:
     if theWBS in wbsNoArr and theFY in fyArr:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
         cells[theWBS][theFY].append([theKey, theSmr[4:]])
+    elif theWBS in wbsNoArr and theSmr[:3] in clArr:
+        theFY = 'FY%s' % theSmr[1:3]
+        #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
+        cells[theWBS][theFY].append([theKey, theSmr[3:]])
     else:
         orphans.append([theKey, theSmr])
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)

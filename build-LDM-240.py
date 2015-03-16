@@ -39,7 +39,7 @@ result = requests.get(SEARCH_URL, params={
            ' AND issuetype = Epic'
            ' AND status = "To Do"'
            ' AND component in (cat, "Data Archive", database, '
-           'db, metaserv, imgserv, qserv, webserv, XLDB)')
+           'db, dbserv, metaserv, imgserv, qserv, webserv, XLDB)')
     }).json()
 
 # for keeping issues that won't make it into the WBS + FY structure

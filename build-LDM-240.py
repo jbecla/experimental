@@ -94,7 +94,7 @@ for row in cells:
 theHTML += '''
 </table>
 
-<p>The following did not make make it to the above table:
+<p>The following did not make it to the above table:
 <ul>
 '''
 for o in orphans:

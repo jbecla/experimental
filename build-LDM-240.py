@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import pprint
 import requests
 
 '''
@@ -37,7 +38,6 @@ result = requests.get(SEARCH_URL, params={
     "maxResults": 10000,
     "jql":('project = DM'
            ' AND issuetype = Epic'
-           ' AND status = "To Do"'
            ' AND component in (cat, "Data Archive", database, '
            'db, dbserv, metaserv, imgserv, qserv, webserv, XLDB)')
     }).json()
@@ -49,16 +49,17 @@ for issue in result['issues']:
     theKey = issue['key']
     theSmr = issue['fields']['summary']
     theWBS = issue['fields']['customfield_10500']
+    theSts = issue['fields']['status']['name']
     theFY  = theSmr[:4]
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append([theKey, theSmr[4:]])
+        cells[theWBS][theFY].append([theKey, theSmr[4:], theSts])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append([theKey, theSmr[3:]])
+        cells[theWBS][theFY].append([theKey, theSmr[3:], theSts])
     else:
-        orphans.append([theKey, theSmr])
+        orphans.append([theKey, theSmr, theSts])
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''<table border='1'>
@@ -82,10 +83,17 @@ for row in cells:
         else:
             theHTML += '''
     <td><ul>'''
+
             for item in cellContents:
+                if item[2] == "Done":
+                    stStart = "<strike>"
+                    stStop = "</strike>"
+                else:
+                    stStart = ""
+                    stStop = ""
                 theHTML += '''
-                <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
-                    (item[0], item[1])
+                <li>%s<a href="https://jira.lsstcorp.org/browse/%s">%s</a>%s</li>''' % \
+                    (stStart, item[0], item[1], stStop)
             theHTML += '''
     </ul></td>'''
     theHTML += '''

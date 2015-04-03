@@ -45,6 +45,12 @@ result = requests.get(SEARCH_URL, params={
 # for keeping issues that won't make it into the WBS + FY structure
 orphans = []
 
+class EpicEntry:
+    def __init__(self, key, summary, status):
+        self.key = key
+        self.summary = summary
+        self.status = status
+
 for issue in result['issues']:
     theKey = issue['key']
     theSmr = issue['fields']['summary']
@@ -53,13 +59,13 @@ for issue in result['issues']:
     theFY  = theSmr[:4]
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append([theKey, theSmr[4:], theSts])
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts))
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append([theKey, theSmr[3:], theSts])
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts))
     else:
-        orphans.append([theKey, theSmr, theSts])
+        orphans.append(EpicEntry(theKey, theSmr, theSts))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''<table border='1'>
@@ -76,16 +82,16 @@ for row in cells:
   <tr>
     <td>%s<br>%s</td>''' % (row, wbses[row])
     for col in cells[row]:
-        cellContents = cells[row][col]
-        if len(cellContents) == 0:
+        cellContent = cells[row][col]
+        if len(cellContent) == 0:
             theHTML += '''
     <td></td>'''
         else:
             theHTML += '''
     <td><ul>'''
 
-            for item in cellContents:
-                if item[2] == "Done":
+            for epic in cellContent:
+                if epic.status == "Done":
                     stStart = "<strike>"
                     stStop = "</strike>"
                 else:
@@ -93,7 +99,7 @@ for row in cells:
                     stStop = ""
                 theHTML += '''
                 <li>%s<a href="https://jira.lsstcorp.org/browse/%s">%s</a>%s</li>''' % \
-                    (stStart, item[0], item[1], stStop)
+                    (stStart, epic.key, epic.summary, stStop)
             theHTML += '''
     </ul></td>'''
     theHTML += '''
@@ -108,7 +114,7 @@ theHTML += '''
 for o in orphans:
     theHTML += '''
       <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
-          (o[0], o[1])
+          (o.key, o.summary)
 theHTML += '''
 </ul></p>'''
 

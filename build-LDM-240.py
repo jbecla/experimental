@@ -1,13 +1,16 @@
 #!/usr/bin/python
 
+import argparse
 import pprint
 import requests
 
 '''
-Queries LSST Jira, fetches all "todo" database-related epics
+Queries LSST Jira, fetches all database-related epics
 and produces html file that contains:
 a) a 2-D table (wbs vs fiscal years)
 b) a list of orphans epics that did not make it to the 2-D table
+It also shows blocking epics. To turn this off, run with "-b 0"
+It also show done epics. to turn this off, run with "-d 0"
 
 Author: Jacek Becla / SLAC
 '''
@@ -32,6 +35,13 @@ for wbs in wbses:
     for fy in fys:
         cells[wbs][fy] = []
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-b', '--showBlockers', required=False, default=1)
+parser.add_argument('-d', '--showDone', required=False, default=1)
+args = vars(parser.parse_args())
+showBlockers = int(args['showBlockers'])
+showDone = int(args['showDone'])
+
 SEARCH_URL = "https://jira.lsstcorp.org/rest/api/2/search"
 
 result = requests.get(SEARCH_URL, params={
@@ -45,14 +55,29 @@ result = requests.get(SEARCH_URL, params={
 # for keeping issues that won't make it into the WBS + FY structure
 orphans = []
 
-# for keeping which epic blocks which epic
-blockedBy = {}
 
 class EpicEntry:
-    def __init__(self, key, summary, status):
+    def __init__(self, key, summary, status, blockedBy=None):
         self.key = key
         self.summary = summary
         self.status = status
+        self.blockedBy = blockedBy
+
+def genEpicLine(epic):
+    if epic.status == "Done":
+        (stStart, stStop) = ("<strike>","</strike>")
+    else:
+        (stStart, stStop) = ("", "")
+    return '%s<a href="https://jira.lsstcorp.org/browse/%s">%s</a>%s' % \
+        (stStart, epic.key, epic.summary, stStop)
+
+
+# build quick lookup array (key->status)
+lookupArr = {}
+for issue in result['issues']:
+    theKey = issue['key']
+    theSts = issue['fields']['status']['name']
+    lookupArr[theKey] = theSts
 
 for issue in result['issues']:
     theKey = issue['key']
@@ -60,26 +85,31 @@ for issue in result['issues']:
     theWBS = issue['fields']['customfield_10500']
     theSts = issue['fields']['status']['name']
     theFY  = theSmr[:4]
+
+    # skip 'Done' if requested
+    if theSts == 'Done' and not showDone:
+        continue
+
+    # Deal with blocking epics
+    blkdBy = []
+    if showBlockers:
+        for iLink in issue['fields']['issuelinks']:
+            if iLink['type']['inward']=='is blocked by' and 'inwardIssue' in iLink:
+                blkKey = iLink['inwardIssue']['key']
+                blkSmr = iLink['inwardIssue']['fields']['summary']
+                blkSts = lookupArr[blkKey] if blkKey in lookupArr else None
+                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts))
+    # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts))
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, blkdBy))
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts))
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, blkdBy))
     else:
-        orphans.append(EpicEntry(theKey, theSmr, theSts))
+        orphans.append(EpicEntry(theKey, theSmr, theSts, blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-
-    # deal with blocking epics
-    for iLink in issue['fields']['issuelinks']:
-        if iLink['type']['inward'] == 'is blocked by' and 'inwardIssue' in iLink:
-            if theKey not in blockedBy:
-                blockedBy[theKey] = []
-            blockedBy[theKey].append(
-                EpicEntry(iLink['inwardIssue']['key'],
-                          iLink['inwardIssue']['fields']['summary'],
-                          iLink['inwardIssue']['fields']['status']))
 
 theHTML = '''<table border='1'>
   <tr>
@@ -101,39 +131,27 @@ for row in cells:
     <td valign="top"></td>'''
         else:
             theHTML += '''
-    <td valign="top"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
+    <td valign="top">
+      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
             for epic in cellContent:
-                if epic.status == "Done":
-                    stStart = "<strike>"
-                    stStop = "</strike>"
-                else:
-                    stStart = ""
-                    stStop = ""
                 theHTML += '''
-                <li>%s<a href="https://jira.lsstcorp.org/browse/%s">%s</a>%s</li>''' % \
-                    (stStart, epic.key, epic.summary, stStop)
+        <li>%s</li>''' % genEpicLine(epic)
+                if len(epic.blockedBy) > 0:
+                    theHTML += '''
+          <ul>'''
+                    for bEpic in epic.blockedBy:
+                        theHTML += '''
+            <li><small><i>%s</i></small></li>''' % genEpicLine(bEpic)
+                    theHTML += '''
+          </ul>'''
             theHTML += '''
-    </ul></td>'''
+      </ul></td>'''
     theHTML += '''
   </tr>'''
 
 theHTML += '''
 </table>
 '''
-
-
-for theKey in blockedBy:
-#    print "Epic %s blocked by:" % theKey
-#    for blEpic in blockedBy[theKey]:
-#        print " * %s (%s)" % (blEpic.key, blEpic.summary)
-    theHTML += '''
-<p> %s blocked by:
-<ul>''' % theKey
-    for blEpic in blockedBy[theKey]:
-        theHTML += '''
-  <li>%s (%s)</li>''' % (blEpic.key, blEpic.summary)
-    theHTML += '''
-</ul>'''
 
 
 theHTML += '''

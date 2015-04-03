@@ -80,16 +80,15 @@ theHTML += '''
 for row in cells:
     theHTML += '''
   <tr>
-    <td>%s<br>%s</td>''' % (row, wbses[row])
+    <td valign="top">%s<br>%s</td>''' % (row, wbses[row])
     for col in cells[row]:
         cellContent = cells[row][col]
         if len(cellContent) == 0:
             theHTML += '''
-    <td></td>'''
+    <td valign="top"></td>'''
         else:
             theHTML += '''
-    <td><ul>'''
-
+    <td valign="top"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
             for epic in cellContent:
                 if epic.status == "Done":
                     stStart = "<strike>"

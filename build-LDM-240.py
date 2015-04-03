@@ -45,6 +45,9 @@ result = requests.get(SEARCH_URL, params={
 # for keeping issues that won't make it into the WBS + FY structure
 orphans = []
 
+# for keeping which epic blocks which epic
+blockedBy = {}
+
 class EpicEntry:
     def __init__(self, key, summary, status):
         self.key = key
@@ -67,6 +70,16 @@ for issue in result['issues']:
     else:
         orphans.append(EpicEntry(theKey, theSmr, theSts))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
+
+    # deal with blocking epics
+    for iLink in issue['fields']['issuelinks']:
+        if iLink['type']['inward'] == 'is blocked by' and 'inwardIssue' in iLink:
+            if theKey not in blockedBy:
+                blockedBy[theKey] = []
+            blockedBy[theKey].append(
+                EpicEntry(iLink['inwardIssue']['key'],
+                          iLink['inwardIssue']['fields']['summary'],
+                          iLink['inwardIssue']['fields']['status']))
 
 theHTML = '''<table border='1'>
   <tr>
@@ -106,7 +119,24 @@ for row in cells:
 
 theHTML += '''
 </table>
+'''
 
+
+for theKey in blockedBy:
+#    print "Epic %s blocked by:" % theKey
+#    for blEpic in blockedBy[theKey]:
+#        print " * %s (%s)" % (blEpic.key, blEpic.summary)
+    theHTML += '''
+<p> %s blocked by:
+<ul>''' % theKey
+    for blEpic in blockedBy[theKey]:
+        theHTML += '''
+  <li>%s (%s)</li>''' % (blEpic.key, blEpic.summary)
+    theHTML += '''
+</ul>'''
+
+
+theHTML += '''
 <p>The following did not make it to the above table:
 <ul>
 '''

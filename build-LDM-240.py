@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import argparse
+from collections import OrderedDict
 import pprint
 import requests
 
@@ -15,21 +16,21 @@ It also show done epics. to turn this off, run with "-d 0"
 Author: Jacek Becla / SLAC
 '''
 
-wbses = {
-    '02C.06.01.01': 'Catalogs Alerts and Metadata',
-    '02C.06.01.02': 'Image and File Archive',
-    '02C.06.02.01': 'Data Access Client Framework',
-    '02C.06.02.02': 'Data Definition Client Framework',
-    '02C.06.02.03': 'Query Services',
-    '02C.06.02.04': 'Image Service'
-}
+wbses = OrderedDict()
+wbses['02C.06.01.01'] = 'Catalogs, Alerts and Metadata'
+wbses['02C.06.01.02'] = 'Image and File Archive'
+wbses['02C.06.02.01'] = 'Data Access Client Framework'
+wbses['02C.06.02.02'] = 'Web Services'
+wbses['02C.06.02.03'] = 'Query Services'
+wbses['02C.06.02.04'] = 'Image and File Services'
+wbses['02C.06.02.05'] = 'Catalog Services'
 
 # fiscal years
 fys = ('FY15', 'FY16', 'FY17', 'FY18', 'FY19', 'FY20')
 # cycles
 cycles = ('S15','W15','S16','W16','S17','W17','S18','W18','S19','W19','S20','W20')
 
-cells = {}
+cells = OrderedDict()
 for wbs in wbses:
     cells[wbs] = {}
     for fy in fys:
@@ -48,8 +49,7 @@ result = requests.get(SEARCH_URL, params={
     "maxResults": 10000,
     "jql":('project = DM'
            ' AND issuetype = Epic'
-           ' AND component in (cat, "Data Archive", database, '
-           'db, dbserv, metaserv, imgserv, qserv, webserv, XLDB)')
+           ' AND Team = "Data Access and Database"')
     }).json()
 
 # for keeping issues that won't make it into the WBS + FY structure

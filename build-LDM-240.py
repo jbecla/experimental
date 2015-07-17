@@ -105,7 +105,7 @@ for issue in result['issues']:
                 blkKey = iLink['inwardIssue']['key']
                 blkSmr = iLink['inwardIssue']['fields']['summary']
                 blkSts = lookupArr[blkKey] if blkKey in lookupArr else None
-                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts))
+                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, 'Y'))
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)

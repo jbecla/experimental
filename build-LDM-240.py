@@ -123,7 +123,7 @@ theHTML = '''<table border='1'>
     <td></td>'''
 for fy in fys:
     theHTML += '''
-    <td align='middle'>%s</td>''' % fy
+    <td align='middle' width='15%%'>%s</td>''' % fy
 theHTML += '''
   </tr>'''
 

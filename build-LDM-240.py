@@ -57,19 +57,26 @@ orphans = []
 
 
 class EpicEntry:
-    def __init__(self, key, summary, status, blockedBy=None):
+    def __init__(self, key, summary, status, cycle=None, blockedBy=None):
         self.key = key
         self.summary = summary
         self.status = status
         self.blockedBy = blockedBy
+        self.cycle = cycle
 
 def genEpicLine(epic):
+    if epic.cycle == 'W':
+        color = "00FF00"
+    elif epic.cycle == 'S':
+        color = "FF0000"
+    else:
+        color = "000000"
     if epic.status == "Done":
         (stStart, stStop) = ("<strike>","</strike>")
     else:
         (stStart, stStop) = ("", "")
-    return '%s<a href="https://jira.lsstcorp.org/browse/%s">%s</a>%s' % \
-        (stStart, epic.key, epic.summary, stStop)
+    return '%s<a href="https://jira.lsstcorp.org/browse/%s"><font color="%s">%s</font></a>%s' % \
+        (stStart, epic.key, color, epic.summary, stStop)
 
 
 # build quick lookup array (key->status)
@@ -102,13 +109,13 @@ for issue in result['issues']:
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, blkdBy))
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, None, blkdBy))
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, blkdBy))
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], blkdBy))
     else:
-        orphans.append(EpicEntry(theKey, theSmr, theSts, blkdBy))
+        orphans.append(EpicEntry(theKey, theSmr, theSts, None, blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''<table border='1'>

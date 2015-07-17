@@ -57,7 +57,7 @@ orphans = []
 
 
 class EpicEntry:
-    def __init__(self, key, summary, status, cycle=None, blockedBy=None):
+    def __init__(self, key, summary, status, cycle, blockedBy=None):
         self.key = key
         self.summary = summary
         self.status = status
@@ -109,13 +109,13 @@ for issue in result['issues']:
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, None, blkdBy))
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', blkdBy))
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], blkdBy))
     else:
-        orphans.append(EpicEntry(theKey, theSmr, theSts, None, blkdBy))
+        orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''<table border='1'>
@@ -140,16 +140,18 @@ for row in cells:
             theHTML += '''
     <td valign="top">
       <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
-            for epic in cellContent:
-                theHTML += '''
-        <li>%s</li>''' % genEpicLine(epic)
-                if len(epic.blockedBy) > 0:
-                    theHTML += '''
-          <ul>'''
-                    for bEpic in epic.blockedBy:
+            for cycle in ('W', 'S', 'Y'): # sort epics by cycle
+                for epic in cellContent:
+                    if epic.cycle == cycle:
                         theHTML += '''
+        <li>%s</li>''' % genEpicLine(epic)
+                        if len(epic.blockedBy) > 0:
+                            theHTML += '''
+          <ul>'''
+                            for bEpic in epic.blockedBy:
+                                theHTML += '''
             <li><small><i>%s</i></small></li>''' % genEpicLine(bEpic)
-                    theHTML += '''
+                            theHTML += '''
           </ul>'''
             theHTML += '''
       </ul></td>'''

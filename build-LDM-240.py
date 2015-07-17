@@ -128,7 +128,7 @@ for row in cells:
         cellContent = cells[row][col]
         if len(cellContent) == 0:
             theHTML += '''
-    <td valign="top"></td>'''
+    <td valign="top">&nbsp;</td>'''
         else:
             theHTML += '''
     <td valign="top">

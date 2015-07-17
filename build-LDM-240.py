@@ -66,11 +66,11 @@ class EpicEntry:
 
 def genEpicLine(epic):
     if epic.cycle == 'W':
-        color = "00FF00"
+        color = "c8682c" # dark orange (for Winter cycle)
     elif epic.cycle == 'S':
-        color = "FF0000"
+        color = "309124" # green (for Summer cycle)
     else:
-        color = "000000"
+        color = "2c73c8" # blue (cycle no specified)
     if epic.status == "Done":
         (stStart, stStop) = ("<strike>","</strike>")
     else:
@@ -170,6 +170,9 @@ for o in orphans:
       <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
           (o.key, o.summary)
 theHTML += '''
-</ul></p>'''
+</ul></p>
+<p>
+Explaination: orange color - winter cycle, green color - summer cycle, blue color - cycle not specified.</p>
+'''
 
 print theHTML

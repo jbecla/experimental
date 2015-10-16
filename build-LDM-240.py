@@ -97,6 +97,10 @@ for issue in result['issues']:
     if theSts == 'Done' and not showDone:
         continue
 
+    # skip 'KPM Measurements'
+    if "KPM Measurement" in theSmr:
+        continue
+
     # Deal with blocking epics
     blkdBy = []
     if showBlockers:
@@ -174,7 +178,7 @@ for o in orphans:
 theHTML += '''
 </ul></p>
 <p>
-Explaination: orange color - winter cycle, green color - summer cycle, blue color - cycle not specified.</p>
+Explanation: orange color - winter cycle, green color - summer cycle, blue color - cycle not specified.</p>
 '''
 
 print theHTML

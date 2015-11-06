@@ -114,6 +114,8 @@ for issue in result['issues']:
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', blkdBy))
+        # uncomment to get the plain list of epics
+        # print "%s,%s,%s" %(theFY, theKey, theSmr[4:])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
@@ -122,7 +124,15 @@ for issue in result['issues']:
         orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
-theHTML = '''<table border='1'>
+theHTML = '''
+
+<html>
+<head>
+<title>LDM-240 for 02C.06</title>
+</head>
+<body>
+
+<table border='1'>
   <tr>
     <td></td>'''
 for fy in fys:
@@ -179,6 +189,9 @@ theHTML += '''
 </ul></p>
 <p>
 Explanation: orange color - winter cycle, green color - summer cycle, blue color - cycle not specified.</p>
+
+</body>
+</html>
 '''
 
 print theHTML

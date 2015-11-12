@@ -91,7 +91,15 @@ for issue in result['issues']:
     theSmr = issue['fields']['summary']
     theWBS = issue['fields']['customfield_10500']
     theSts = issue['fields']['status']['name']
+    theSPs = issue['fields']['customfield_10202']
+    if theSPs is None:
+        theSPs = 0
+    else:
+        theSPs = int(theSPs)
     theFY  = theSmr[:4]
+    if theKey == 'DM-1705':
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(issue)
 
     # skip 'Done' if requested
     if theSts == 'Done' and not showDone:
@@ -112,14 +120,14 @@ for issue in result['issues']:
                 blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, 'Y'))
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
-        #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
+        #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', blkdBy))
-        # uncomment to get the plain list of epics
-        # print "%s,%s,%s" %(theFY, theKey, theSmr[4:])
+        #print "PLANNING,%s,%s,%d,%s" %(theFY, theKey, theSPs, theSmr[4:])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
-        #print "GOOD: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
+        #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], blkdBy))
+        #print "PLANNING,%s,%s,%d,%s" %(theFY, theKey, theSPs, theSmr[3:])
     else:
         orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
@@ -194,4 +202,4 @@ Explanation: orange color - winter cycle, green color - summer cycle, blue color
 </html>
 '''
 
-print theHTML
+#print theHTML

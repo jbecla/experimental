@@ -13,6 +13,11 @@ b) a list of orphans epics that did not make it to the 2-D table
 It also shows blocking epics. To turn this off, run with "-b 0"
 It also show done epics. to turn this off, run with "-d 0"
 
+For long term planning, uncomment lines starting with PLANNING,
+run like this:
+./build-LDM-240.py  -b 0 |grep PLANNING|sort > /tmp/x.csv
+and open the x.csv with spreadsheet
+
 Author: Jacek Becla / SLAC
 '''
 
@@ -122,12 +127,12 @@ for issue in result['issues']:
     if theWBS in wbses and theFY in fys:
         #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', blkdBy))
-        #print "PLANNING,%s,%s,%d,%s" %(theFY, theKey, theSPs, theSmr[4:])
+        #print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[4:])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], blkdBy))
-        #print "PLANNING,%s,%s,%d,%s" %(theFY, theKey, theSPs, theSmr[3:])
+        #print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[3:])
     else:
         orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)

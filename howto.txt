@@ -1,2 +1,2 @@
-./build-LDM-240.py  -b 0 > /tmp/ldm-240.html
-./build-LDM-240.py  -b 1 > /tmp/ldm-240_b.html
+./build-LDM-240.py -b 0 -o /tmp/ldm-240.html
+./build-LDM-240.py -b 1 -o /tmp/ldm-240_b.html

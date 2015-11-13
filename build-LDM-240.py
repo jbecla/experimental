@@ -45,9 +45,12 @@ for wbs in wbses:
 parser = argparse.ArgumentParser()
 parser.add_argument('-b', '--showBlockers', required=False, default=1)
 parser.add_argument('-d', '--showDone', required=False, default=1)
+parser.add_argument('-o', '--outFileName', required=False, default="/dev/null")
+
 args = vars(parser.parse_args())
 showBlockers = int(args['showBlockers'])
 showDone = int(args['showDone'])
+outFileName = args['outFileName']
 
 SEARCH_URL = "https://jira.lsstcorp.org/rest/api/2/search"
 
@@ -124,9 +127,6 @@ for issue in result['issues']:
     else:
         theSPs = int(theSPs)
     theFY  = theSmr[:4]
-    if theKey == 'DM-1705':
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(issue)
 
     # skip 'Done' if requested
     if theSts == 'Done' and not showDone:
@@ -229,4 +229,7 @@ Explanation: orange color - winter cycle, green color - summer cycle, blue color
 </html>
 '''
 
-#print theHTML
+if outFileName != "/dev/null":
+    f = open(outFileName, "w")
+    f.write(theHTML)
+    f.close()

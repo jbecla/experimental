@@ -2,6 +2,7 @@
 
 import argparse
 from collections import OrderedDict
+import pickle
 import pprint
 import requests
 
@@ -50,12 +51,33 @@ showDone = int(args['showDone'])
 
 SEARCH_URL = "https://jira.lsstcorp.org/rest/api/2/search"
 
-result = requests.get(SEARCH_URL, params={
-    "maxResults": 10000,
-    "jql":('project = DM'
-           ' AND issuetype = Epic'
-           ' AND Team = "Data Access and Database"')
-    }).json()
+# This is for offline analysis. Run it first with "dumpToFile"
+# set to True, this will fetch data from jira as it normally
+# does, and save it in file. Then to run offline analysis,
+# set readFromFile to True, while dumpToFile is False
+fileForOfflineAnalysis = "/tmp/for_ldm-240.out"
+dumpToFile = False
+readFromFile = False
+
+if readFromFile:
+    f = open(fileForOfflineAnalysis, "r")
+    result = pickle.load(f)
+    f.close()
+else:
+    result = requests.get(SEARCH_URL, params={
+        "maxResults": 10000,
+        "jql":('project = DM'
+               ' AND issuetype = Epic'
+               ' AND Team = "Data Access and Database"')
+        }).json()
+
+
+if dumpToFile:
+    f = open(fileForOfflineAnalysis, "w")
+    pickle.dump(result, f)
+    f.close()
+
+
 
 # for keeping issues that won't make it into the WBS + FY structure
 orphans = []

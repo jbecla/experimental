@@ -2,6 +2,7 @@
 
 import argparse
 from collections import OrderedDict
+import math
 import pickle
 import pprint
 import requests
@@ -87,12 +88,13 @@ orphans = []
 
 
 class EpicEntry:
-    def __init__(self, key, summary, status, cycle, blockedBy=None):
+    def __init__(self, key, summary, status, cycle, sps, blockedBy=None):
         self.key = key
         self.summary = summary
         self.status = status
         self.blockedBy = blockedBy
         self.cycle = cycle
+        self.sps = sps
 
 def genEpicLine(epic):
     if epic.cycle == 'W':
@@ -105,8 +107,16 @@ def genEpicLine(epic):
         (stStart, stStop) = ("<strike>","</strike>")
     else:
         (stStart, stStop) = ("", "")
-    return '%s<a href="https://jira.lsstcorp.org/browse/%s"><font color="%s">%s</font></a>%s' % \
-        (stStart, epic.key, color, epic.summary, stStop)
+
+    if epic.sps == 0:
+        fteMonth = "0"
+    elif (epic.sps / 26.3) % 1 < 0.15 or (epic.sps / 26.3) % 1 > 0.85:
+        fteMonth = "%d" % int(math.ceil(epic.sps/26.3))
+    else:
+        fteMonth = "%.1f" % float(epic.sps/26.3)
+
+    return '%s<a href="https://jira.lsstcorp.org/browse/%s"><font color="%s">%s (%s)</font></a>%s' % \
+        (stStart, epic.key, color, epic.summary, fteMonth, stStop)
 
 
 # build quick lookup array (key->status)
@@ -115,6 +125,11 @@ for issue in result['issues']:
     theKey = issue['key']
     theSts = issue['fields']['status']['name']
     lookupArr[theKey] = theSts
+
+# count story points per FY
+spsArr = {}
+for fy in fys:
+    spsArr[fy] = 0
 
 for issue in result['issues']:
     theKey = issue['key']
@@ -126,7 +141,7 @@ for issue in result['issues']:
         theSPs = 0
     else:
         theSPs = int(theSPs)
-    theFY  = theSmr[:4]
+    theFY = theSmr[:4]
 
     # skip 'Done' if requested
     if theSts == 'Done' and not showDone:
@@ -144,19 +159,21 @@ for issue in result['issues']:
                 blkKey = iLink['inwardIssue']['key']
                 blkSmr = iLink['inwardIssue']['fields']['summary']
                 blkSts = lookupArr[blkKey] if blkKey in lookupArr else None
-                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, 'Y'))
+                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, theSPs, 'Y'))
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
+        spsArr[theFY] += theSPs
         #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', blkdBy))
-        #print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[4:])
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', theSPs, blkdBy))
+        print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[4:])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
+        spsArr[theFY] += theSPs
         #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], blkdBy))
-        #print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[3:])
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], theSPs, blkdBy))
+        print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[3:])
     else:
-        orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', blkdBy))
+        orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', theSPs, blkdBy))
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''
@@ -209,13 +226,23 @@ for row in cells:
 
 theHTML += '''
 </table>
-'''
 
+<p>Breakdown of story points per FY:
+<table border='1'>
+<tr><td align='middle'>FY<td align='middle'>story points<td align='middle'>FTE-months<td align='middle'>FTE-years
+'''
+for fy in fys:
+    theHTML += '''
+    <tr><td align='middle'>%s<td align='middle'>%d<td align='middle'>%d<td align='middle'>%0.1f
+''' % (fy, spsArr[fy], spsArr[fy]/26.3, spsArr[fy]/26.3/12)
 
 theHTML += '''
+</table>
+
 <p>The following did not make it to the above table:
 <ul>
 '''
+
 for o in orphans:
     theHTML += '''
       <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
@@ -224,6 +251,8 @@ theHTML += '''
 </ul></p>
 <p>
 Explanation: orange color - winter cycle, green color - summer cycle, blue color - cycle not specified.</p>
+
+The numbers next to epics in brackets: effort expressed in FTE-months, where 1 FTE month = 26.3 story points
 
 </body>
 </html>

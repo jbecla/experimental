@@ -159,7 +159,7 @@ for issue in result['issues']:
                 blkKey = iLink['inwardIssue']['key']
                 blkSmr = iLink['inwardIssue']['fields']['summary']
                 blkSts = lookupArr[blkKey] if blkKey in lookupArr else None
-                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, theSPs, 'Y'))
+                blkdBy.append(EpicEntry(blkKey, blkSmr, blkSts, 'Y', theSPs))
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         spsArr[theFY] += theSPs

@@ -59,26 +59,38 @@ SEARCH_URL = "https://jira.lsstcorp.org/rest/api/2/search"
 # set to True, this will fetch data from jira as it normally
 # does, and save it in file. Then to run offline analysis,
 # set readFromFile to True, while dumpToFile is False
-fileForOfflineAnalysis = "/tmp/for_ldm-240.out"
+fileForOfflineAnalysisDM = "/tmp/for_ldm-240.DM.out"
+fileForOfflineAnalysisDLP = "/tmp/for_ldm-240.DLP.out"
 dumpToFile = False
 readFromFile = False
 
 if readFromFile:
-    f = open(fileForOfflineAnalysis, "r")
+    f = open(fileForOfflineAnalysisDM, "r")
     result = pickle.load(f)
+    f.close()
+    f = open(fileForOfflineAnalysisDLP, "r")
+    resultDLP = pickle.load(f)
     f.close()
 else:
     result = requests.get(SEARCH_URL, params={
         "maxResults": 10000,
         "jql":('project = DM'
                ' AND issuetype = Epic'
-               ' AND Team = "Data Access and Database"')
-        }).json()
+               ' AND Team = "Data Access and Database"')}).json()
+
+    resultDLP = requests.get(SEARCH_URL, params={
+        "maxResults": 10000,
+        "jql":('project = "DM Long-range  Planning"'
+               ' AND wbs ~ "02C.06*"'
+               ' AND type = milestone')}).json()
 
 
 if dumpToFile:
-    f = open(fileForOfflineAnalysis, "w")
+    f = open(fileForOfflineAnalysisDM, "w")
     pickle.dump(result, f)
+    f.close()
+    f = open(fileForOfflineAnalysisDLP, "w")
+    pickle.dump(resultDLP, f)
     f.close()
 
 
@@ -95,6 +107,11 @@ class EpicEntry:
         self.blockedBy = blockedBy
         self.cycle = cycle
         self.sps = sps
+
+class DLPEpicEntry:
+    def __init__(self, key, summary):
+        self.key = key
+        self.summary = summary
 
 def genEpicLine(epic):
     if epic.cycle == 'W':
@@ -130,6 +147,23 @@ for issue in result['issues']:
 spsArr = {}
 for fy in fys:
     spsArr[fy] = 0
+
+dlpMilestonesArr = {}
+for fy in fys:
+    dlpMilestonesArr[fy] = []
+
+for issue in resultDLP['issues']:
+    theKey = issue['key']
+    cycle = issue['fields']['fixVersions'][0]['name']
+    smr = issue['fields']['summary']
+    fy = "FY%s" % cycle[1:]
+    dlpMilestonesArr[fy].append(DLPEpicEntry(theKey, smr))
+
+for fy in dlpMilestonesArr:
+    s = ""
+    for e in dlpMilestonesArr[fy]:
+        s += "(%s, %s) " % (e.key, e.summary)
+    print "%s: %s" % (fy, s)
 
 for issue in result['issues']:
     theKey = issue['key']
@@ -224,7 +258,24 @@ for row in cells:
     theHTML += '''
   </tr>'''
 
+# now the DLP row with milestones
 theHTML += '''
+  <tr>
+      <td valign="top" bgcolor="#BEBEBE">DLP milestones</td>
+'''
+for fy in fys:
+    theHTML += '''
+      <td valign="top" bgcolor="#BEBEBE"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">
+'''
+    for e in dlpMilestonesArr[fy]:
+        theHTML += '''
+        <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>
+''' % (e.key, e.summary)
+    theHTML += '''
+      </ul></td>
+'''
+theHTML += '''
+  </tr>
 </table>
 
 <p>Breakdown of story points per FY:

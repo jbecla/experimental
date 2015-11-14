@@ -221,14 +221,35 @@ theHTML = '''
     <td></td>'''
 for fy in fys:
     theHTML += '''
-    <td align='middle' width='15%%'>%s</td>''' % fy
+    <td bgcolor="#BEBEBE" align='middle' width='15%%'>%s</td>''' % fy
 theHTML += '''
   </tr>'''
+
+
+# now the DLP row with milestones
+theHTML += '''
+  <tr>
+      <td bgcolor="#BEBEBE" valign="top">DLP milestones</td>
+'''
+for fy in fys:
+    theHTML += '''
+      <td valign="top" bgcolor="#7DDB90"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">
+'''
+    for e in dlpMilestonesArr[fy]:
+        theHTML += '''
+        <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>
+''' % (e.key, e.summary)
+    theHTML += '''
+      </ul></td>
+'''
+theHTML += '''
+  </tr>
+'''
 
 for row in cells:
     theHTML += '''
   <tr>
-    <td valign="top">%s<br>%s</td>''' % (row, wbses[row])
+    <td valign="top" bgcolor="#BEBEBE">%s<br>%s</td>''' % (row, wbses[row])
     for col in cells[row]:
         cellContent = cells[row][col]
         if len(cellContent) == 0:
@@ -256,24 +277,9 @@ for row in cells:
     theHTML += '''
   </tr>'''
 
-# now the DLP row with milestones
+
+
 theHTML += '''
-  <tr>
-      <td valign="top" bgcolor="#BEBEBE">DLP milestones</td>
-'''
-for fy in fys:
-    theHTML += '''
-      <td valign="top" bgcolor="#BEBEBE"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">
-'''
-    for e in dlpMilestonesArr[fy]:
-        theHTML += '''
-        <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>
-''' % (e.key, e.summary)
-    theHTML += '''
-      </ul></td>
-'''
-theHTML += '''
-  </tr>
 </table>
 
 <p>Breakdown of story points per FY:

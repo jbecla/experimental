@@ -218,7 +218,7 @@ theHTML = '''
 
 <table border='1'>
   <tr>
-    <td></td>'''
+    <td bgcolor="#BEBEBE"></td>'''
 for fy in fys:
     theHTML += '''
     <td bgcolor="#BEBEBE" align='middle' width='15%%'>%s</td>''' % fy

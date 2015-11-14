@@ -125,13 +125,11 @@ def genEpicLine(epic):
     else:
         (stStart, stStop) = ("", "")
 
-    if epic.sps == 0:
-        fteMonth = "0"
-    elif (epic.sps / 26.3) % 1 < 0.15 or (epic.sps / 26.3) % 1 > 0.85:
-        fteMonth = "%d" % int(math.ceil(epic.sps/26.3))
+    fteMonth = epic.sps/26.3
+    if fteMonth % 1 < 0.05:
+        fteMonth = "%d" % fteMonth
     else:
-        fteMonth = "%.1f" % float(epic.sps/26.3)
-
+        fteMonth = "%.1f" % fteMonth
     return '%s<a href="https://jira.lsstcorp.org/browse/%s"><font color="%s">%s (%s)</font></a>%s' % \
         (stStart, epic.key, color, epic.summary, fteMonth, stStop)
 

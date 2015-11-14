@@ -209,7 +209,6 @@ for issue in result['issues']:
         #print "ORPHAN: %s, %s, %s, %s" % (theKey, theWBS, theFY, theSmr)
 
 theHTML = '''
-
 <html>
 <head>
 <title>LDM-240 for 02C.06</title>
@@ -229,21 +228,18 @@ theHTML += '''
 # now the DLP row with milestones
 theHTML += '''
   <tr>
-      <td bgcolor="#BEBEBE" valign="top">DLP milestones</td>
-'''
+    <td bgcolor="#BEBEBE" valign="top">DLP milestones</td>'''
 for fy in fys:
     theHTML += '''
-      <td valign="top" bgcolor="#7DDB90"><ul style="list-item-style:none; margin-left:0px;padding-left:20px;">
-'''
+    <td valign="top" bgcolor="#7DDB90">
+      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
     for e in dlpMilestonesArr[fy]:
         theHTML += '''
-        <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>
-''' % (e.key, e.summary)
+        <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % (e.key, e.summary)
     theHTML += '''
       </ul></td>
 '''
-theHTML += '''
-  </tr>
+theHTML += '''</tr>
 '''
 
 for row in cells:
@@ -284,23 +280,20 @@ theHTML += '''
 
 <p>Breakdown of story points per FY:
 <table border='1'>
-<tr><td align='middle'>FY<td align='middle'>story points<td align='middle'>FTE-months<td align='middle'>FTE-years
-'''
+    <tr><td align='middle'>FY<td align='middle'>story points<td align='middle'>FTE-months<td align='middle'>FTE-years'''
 for fy in fys:
     theHTML += '''
-    <tr><td align='middle'>%s<td align='middle'>%d<td align='middle'>%d<td align='middle'>%0.1f
-''' % (fy, spsArr[fy], spsArr[fy]/26.3, spsArr[fy]/26.3/12)
+    <tr><td align='middle'>%s<td align='middle'>%d<td align='middle'>%d<td align='middle'>%0.1f''' % (fy, spsArr[fy], spsArr[fy]/26.3, spsArr[fy]/26.3/12)
 
 theHTML += '''
 </table>
 
 <p>The following did not make it to the above table:
-<ul>
-'''
+  <ul>'''
 
 for o in orphans:
     theHTML += '''
-      <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
+    <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % \
           (o.key, o.summary)
 theHTML += '''
 </ul></p>

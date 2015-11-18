@@ -33,9 +33,9 @@ wbses['02C.06.02.04'] = 'Image and File Services'
 wbses['02C.06.02.05'] = 'Catalog Services'
 
 # fiscal years
-fys = ('FY15', 'FY16', 'FY17', 'FY18', 'FY19', 'FY20')
+fys = ('FY14', 'FY15', 'FY16', 'FY17', 'FY18', 'FY19', 'FY20')
 # cycles
-cycles = ('S15','W15','S16','W16','S17','W17','S18','W18','S19','W19','S20','W20')
+cycles = ('S14', 'W14', 'S15','W15','S16','W16','S17','W17','S18','W18','S19','W19','S20','W20')
 
 cells = OrderedDict()
 for wbs in wbses:

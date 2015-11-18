@@ -212,15 +212,59 @@ theHTML = '''
 <html>
 <head>
 <title>LDM-240 for 02C.06</title>
+
+<style>
+    .col14 {display: table-cell; }
+    .col15 {display: table-cell; }
+    .col16 {display: table-cell; }
+    .col17 {display: table-cell; }
+    .col18 {display: table-cell; }
+    .col19 {display: table-cell; }
+    .col20 {display: table-cell; }
+
+    table.show14 .col14 { display: none; }
+    table.show15 .col15 { display: none; }
+    table.show16 .col16 { display: none; }
+    table.show17 .col17 { display: none; }
+    table.show18 .col18 { display: none; }
+    table.show19 .col19 { display: none; }
+    table.show20 .col20 { display: none; }
+</style>
+
+<script>
+function toggleColumn(n) {
+    var currentClass = document.getElementById("mytable").className;
+    if (currentClass.indexOf("show"+n) != -1) {
+        document.getElementById("mytable").className = currentClass.replace("show"+n, "");
+    } else {
+        document.getElementById("mytable").className += " " + "show"+n;
+    }
+}
+</script>
+
 </head>
 <body>
 
-<table border='1'>
+<p>Press to turn off/on a given column:
+<table border="1">
+  <tr>
+    <td onclick="toggleColumn(14)">FY14</td>
+    <td onclick="toggleColumn(15)">FY15</td>
+    <td onclick="toggleColumn(16)">FY16</td>
+    <td onclick="toggleColumn(17)">FY17</td>
+    <td onclick="toggleColumn(18)">FY18</td>
+    <td onclick="toggleColumn(19)">FY19</td>
+    <td onclick="toggleColumn(20)">FY20</td>
+  </tr>
+</table></p>
+
+
+<table id="mytable" border='1'>
   <tr>
     <td bgcolor="#BEBEBE"></td>'''
 for fy in fys:
     theHTML += '''
-    <td bgcolor="#BEBEBE" align='middle' width='15%%'>%s</td>''' % fy
+    <td class="col%s" bgcolor="#BEBEBE" align='middle' width='15%%'>%s</td>''' % (fy[2:], fy)
 theHTML += '''
   </tr>'''
 
@@ -228,11 +272,11 @@ theHTML += '''
 # now the DLP row with milestones
 theHTML += '''
   <tr>
-    <td bgcolor="#BEBEBE" valign="top">DLP milestones</td>'''
+    <td width="10%" bgcolor="#BEBEBE" valign="top">DLP milestones</td>'''
 for fy in fys:
     theHTML += '''
-    <td valign="top" bgcolor="#7DDB90">
-      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
+    <td class="col%s" valign="top" bgcolor="#7DDB90">
+      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">''' % fy[2:]
     for e in dlpMilestonesArr[fy]:
         theHTML += '''
         <li><a href="https://jira.lsstcorp.org/browse/%s">%s</a></li>''' % (e.key, e.summary)
@@ -246,15 +290,16 @@ for row in cells:
     theHTML += '''
   <tr>
     <td valign="top" bgcolor="#BEBEBE">%s<br>%s</td>''' % (row, wbses[row])
+    fyN = 14
     for col in cells[row]:
         cellContent = cells[row][col]
         if len(cellContent) == 0:
             theHTML += '''
-    <td valign="top">&nbsp;</td>'''
+    <td class="col%d" valign="top">&nbsp;</td>''' % fyN
         else:
             theHTML += '''
-    <td valign="top">
-      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">'''
+    <td class="col%d" valign="top">
+      <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">''' % fyN
             for cycle in ('W', 'S', 'Y'): # sort epics by cycle
                 for epic in cellContent:
                     if epic.cycle == cycle:
@@ -270,6 +315,7 @@ for row in cells:
           </ul>'''
             theHTML += '''
       </ul></td>'''
+        fyN += 1
     theHTML += '''
   </tr>'''
 

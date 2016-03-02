@@ -36,7 +36,7 @@ wbses['02C.06.02.05'] = 'Catalog Services'
 # fiscal years
 fys = ('FY14', 'FY15', 'FY16', 'FY17', 'FY18', 'FY19', 'FY20')
 # cycles
-cycles = ('S14', 'W14', 'S15','W15','S16','W16','S17','W17','S18','W18','S19','W19','S20','W20')
+cycles = ('W14','S14','W15','S15','W16','X16','F16','S17','F17','S17','F18','S18','F19','S19','F20','S20', 'F20')
 
 cells = OrderedDict()
 for wbs in wbses:
@@ -106,7 +106,9 @@ class EpicEntry:
         self.summary = summary
         self.status = status
         self.blockedBy = blockedBy
-        self.cycle = cycle
+        self.cycle = cycle  # this can be 'Y', or 'A', or 'B'
+                            # where 'A is winter or spring
+                            # 'B' is Extra or Summer or Fall
         self.sps = sps
 
 class DLPEpicEntry:
@@ -114,10 +116,23 @@ class DLPEpicEntry:
         self.key = key
         self.summary = summary
 
+def cycleToAB(cycle):
+    # patch related to summer->fall, winter-->spring shift
+    # basically all winter and all spring are A, extra and all summer are B
+    if cycle[:1] == 'W':
+        return 'A'
+    if cycle[:1] == 'X':
+        return 'B'
+    if cycle[:1] == 'F':
+        return 'B'
+    if cycle in ('S14', 'S15'):
+        return 'B'
+    return 'A'
+
 def genEpicLine(epic):
-    if epic.cycle == 'W':
+    if epic.cycle == 'A':
         color = "c8682c" # dark orange (for Winter cycle)
-    elif epic.cycle == 'S':
+    elif epic.cycle == 'B':
         color = "309124" # green (for Summer cycle)
     else:
         color = "2c73c8" # blue (cycle no specified)
@@ -196,14 +211,15 @@ for issue in result['issues']:
     # Save in the "cells" array
     if theWBS in wbses and theFY in fys:
         spsArr[theFY] += theSPs
-        #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
+        print "GOOD1: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
         cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[4:], theSts, 'Y', theSPs, blkdBy))
         print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[4:])
     elif theWBS in wbses and theSmr[:3] in cycles:
         theFY = 'FY%s' % theSmr[1:3]
         spsArr[theFY] += theSPs
-        #print "GOOD: %s, %s, %s, %d, %s" % (theKey, theWBS, theFY, theSPs, theSmr)
-        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theSmr[:1], theSPs, blkdBy))
+        theCcl = cycleToAB(theSmr)
+        print "GOOD2: %s, %s, %s, %d, %s, %s" % (theKey, theWBS, theFY, theSPs, theSmr, theCcl)
+        cells[theWBS][theFY].append(EpicEntry(theKey, theSmr[3:], theSts, theCcl, theSPs, blkdBy))
         print "PLANNING;%s;%s;%d;%s" %(theFY, theKey, theSPs, theSmr[3:])
     else:
         orphans.append(EpicEntry(theKey, theSmr, theSts, 'Y', theSPs, blkdBy))
@@ -303,7 +319,7 @@ for row in cells:
             theHTML += '''
     <td class="col%d" valign="top">
       <ul style="list-item-style:none; margin-left:0px;padding-left:20px;">''' % fyN
-            for cycle in ('W', 'S', 'Y'): # sort epics by cycle
+            for cycle in ('A', 'B', 'Y'): # sort epics by cycle
                 for epic in cellContent:
                     if epic.cycle == cycle:
                         theHTML += '''

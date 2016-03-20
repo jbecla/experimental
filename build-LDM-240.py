@@ -345,10 +345,16 @@ theHTML += '''
 
 <p>Breakdown of story points per FY:
 <table border='1'>
-    <tr><td align='middle'>FY<td align='middle'>story points<td align='middle'>FTE-months<td align='middle'>FTE-years'''
+    <tr>
+      <td align='middle'>FY
+      <td align='middle'>story points
+      <td align='middle'>SP-based FTE-months
+      <td align='middle'>SP-based FTE-years
+      <td align='middle'>FTE-years w/overhead
+'''
 for fy in fys:
     theHTML += '''
-    <tr><td align='middle'>%s<td align='middle'>%d<td align='middle'>%d<td align='middle'>%0.1f''' % (fy, spsArr[fy], spsArr[fy]/26.3, spsArr[fy]/26.3/12)
+    <tr><td align='middle'>%s<td align='middle'>%d<td align='middle'>%d<td align='middle'>%0.1f<td align='middle'>%0.1f''' % (fy, spsArr[fy], spsArr[fy]/26.3, spsArr[fy]/26.3/12, spsArr[fy]/26.3/12/0.7)
 
 theHTML += '''
 </table>
